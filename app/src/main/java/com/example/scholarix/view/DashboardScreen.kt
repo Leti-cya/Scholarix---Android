@@ -1,4 +1,4 @@
-package com.example.scholarix
+package com.example.scholarix.view
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
