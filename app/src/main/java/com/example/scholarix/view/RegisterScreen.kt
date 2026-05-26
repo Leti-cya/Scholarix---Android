@@ -1,14 +1,11 @@
-package com.example.scholarix
+package com.example.scholarix.view
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,12 +16,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,22 +43,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.scholarix.R
 import com.example.scholarix.ui.theme.Background
-import com.example.scholarix.ui.theme.Gold
 import com.example.scholarix.ui.theme.PrimaryBlue
 
-class LoginActivity : ComponentActivity() {
+class RegisterActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LoginScreen()
+            RegisterScreen()
         }
     }
 }
 
 @Composable
-fun LoginScreen() {
+fun RegisterScreen() {
+    var name by remember { mutableStateOf("") }
+    var mobile by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -82,17 +78,54 @@ fun LoginScreen() {
             modifier = Modifier.height(100.dp)
         )
 
-        Text("Welcome back!", style = TextStyle(
+        Text("Create account", style = TextStyle(
             color = PrimaryBlue,
             fontSize = 30.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center),
             modifier = Modifier.fillMaxWidth())
 
-        Text("Glad to see you again :D",
+        Text("to join our family :3",
             style = TextStyle(textAlign = TextAlign.Center),
             fontSize = 18.sp,
             modifier = Modifier.fillMaxWidth())
+
+        OutlinedTextField(
+            value = name,
+            onValueChange = {
+                name = it
+            },
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+                .padding(vertical = 15.dp),
+            placeholder = {
+                Text("Enter your full name")
+            },
+            colors = TextFieldDefaults.colors(
+                unfocusedIndicatorColor = Color.Transparent,
+                unfocusedContainerColor = Color.Gray.copy(alpha = 0.1f),
+                focusedIndicatorColor = Color.Gray.copy(alpha = 0.1f),
+                focusedContainerColor = Color.Blue
+            )
+        )
+
+        OutlinedTextField(
+            value = mobile,
+            onValueChange = {
+                mobile = it
+            },
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = {
+                Text("Enter your phone number")
+            },
+            colors = TextFieldDefaults.colors(
+                unfocusedIndicatorColor = Color.Transparent,
+                unfocusedContainerColor = Color.Gray.copy(alpha = 0.1f),
+                focusedIndicatorColor = Color.Gray.copy(alpha = 0.1f),
+                focusedContainerColor = Color.Blue
+            )
+        )
 
         OutlinedTextField(
             value = email,
@@ -104,9 +137,6 @@ fun LoginScreen() {
                 .padding(vertical = 15.dp),
             placeholder = {
                 Text("Enter your email")
-            },
-            label = {
-                Text("email")
             },
             colors = TextFieldDefaults.colors(
                 unfocusedIndicatorColor = Color.Transparent,
@@ -147,9 +177,6 @@ fun LoginScreen() {
             placeholder = {
                 Text("*******************")
             },
-            label = {
-                Text("password")
-            },
             colors = TextFieldDefaults.colors(
                 unfocusedIndicatorColor = Color.Transparent,
                 unfocusedContainerColor = Color.Gray.copy(alpha = 0.1f),
@@ -158,15 +185,7 @@ fun LoginScreen() {
             )
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth()
-                .padding(vertical = 15.dp),
-            horizontalArrangement = Arrangement.End
-        ) {
-            Text("Forgot Password?",
-                style = TextStyle(color = PrimaryBlue)
-            )
-        }
+        Spacer(modifier = Modifier.height(15.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -174,22 +193,15 @@ fun LoginScreen() {
         ) {
             Button(onClick = {
                 val sharedPreferences = context.getSharedPreferences("User", Context.MODE_PRIVATE)
+
                 val editor = sharedPreferences.edit()
 
-                val emailStorage : String? = sharedPreferences.getString("email", "")
-                val passwordStorage : String? = sharedPreferences.getString("password", "")
+                editor.putString("name", name)
+                editor.putString("mobile", mobile)
+                editor.putString("email", email)
+                editor.putString("password", password)
 
-                if (email == emailStorage && password == passwordStorage) {
-                    Toast.makeText(context, "Login success", Toast.LENGTH_SHORT).show()
-
-                    editor.putBoolean("isLoggedIn", true)
-
-                    val intent = Intent(context, DashboardActivity::class.java)
-                    context.startActivity(intent)
-                    activity?.finish()
-                } else {
-                    Toast.makeText(context, "Login failed", Toast.LENGTH_SHORT).show()
-                }
+                editor.apply()
             },
                 Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10),
@@ -197,7 +209,7 @@ fun LoginScreen() {
                     containerColor = PrimaryBlue,
                     contentColor = Color.White
                 )) {
-                Text(text = "Log In")
+                Text(text = "Sign Up")
             }
         }
 
@@ -211,9 +223,7 @@ fun LoginScreen() {
                 thickness = 2.dp,
                 color = Color.Gray.copy(alpha = 0.3f)
             )
-
-            Text("Or Login with", modifier = Modifier.padding(horizontal = 5.dp))
-
+            Text("Oe Register With", modifier = Modifier.padding(horizontal = 5.dp))
             HorizontalDivider(
                 modifier = Modifier.weight(1f),
                 thickness = 2.dp,
@@ -222,14 +232,17 @@ fun LoginScreen() {
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.Bottom
         ) {
             LoginCard(
                 modifier = Modifier.fillMaxWidth()
                     .height(50.dp)
                     .weight(1f),
                 image = R.drawable.google,
-                label = "Google")
+                label = "Google"
+            )
         }
 
         Row(
@@ -237,50 +250,16 @@ fun LoginScreen() {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Bottom
         ) {
-            Text("Don't have account? ")
-            Text("Sign up.",
-                modifier = Modifier.clickable{
-                    val intent = Intent(context,
-                        RegisterActivity::class.java)
-
-                    context.startActivity(intent)
-                },
-                style = TextStyle(color = PrimaryBlue)
-            )
+            Text("Already have an account? ")
+            Text("Sign in.",
+                modifier = Modifier.clickable{},
+                style = TextStyle(color = PrimaryBlue))
         }
     }
 }
 
+@Preview
 @Composable
-fun LoginCard(
-    modifier: Modifier,
-    image : Int,
-    label : String
-) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        modifier = modifier
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Image(
-                painter = painterResource(image),
-                contentDescription = "facebook",
-                modifier = Modifier.size(30.dp)
-            )
-
-            Spacer(modifier = Modifier.width(10.dp))
-
-            Text(label)
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginPreview() {
-    LoginScreen()
+fun RegisterPreview() {
+    RegisterScreen()
 }
