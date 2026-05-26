@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "45299353838",
+    "firebase_url": "https://scholarix-3b7f6-default-rtdb.firebaseio.com",
+    "project_id": "scholarix-3b7f6",
+    "storage_bucket": "scholarix-3b7f6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:45299353838:android:1218a407864d6f36254bff",
+        "android_client_info": {
+          "package_name": "com.example.scholarix"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHP2m_q-dRpy_FAAlrxKDobB1z5IGLaUE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
