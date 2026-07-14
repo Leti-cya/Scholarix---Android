@@ -7,12 +7,12 @@ import com.example.scholarix.repo.UserRepo
 
 class UserViewModel(val repo : UserRepo) : ViewModel() {
     fun login(email: String, password: String,
-                  callback: (Boolean, String) -> Unit) {
+              callback: (Boolean, String) -> Unit) {
         repo.login(email, password, callback)
     }
 
     fun forgotPassword(email: String,
-                           callback: (Boolean, String) -> Unit) {
+                       callback: (Boolean, String) -> Unit) {
         repo.forgetPassword(email, callback)
     }
 
@@ -39,8 +39,8 @@ class UserViewModel(val repo : UserRepo) : ViewModel() {
     private val _allUsers = MutableLiveData<List<UserModel?>>()
     val allUsers: MutableLiveData<List<UserModel?>> get() = _allUsers
 
-    fun getAllUser() {
-        repo.getAllUser { success, message, data ->
+    fun getAllUsers() {
+        repo.getAllUsers { success, message, data ->
             if (success) {
                 _allUsers.value = data
                 _loading.value = false
@@ -57,23 +57,23 @@ class UserViewModel(val repo : UserRepo) : ViewModel() {
 
     // authentication
     fun register(email: String, password: String,
-                     callback: (Boolean, String, String) -> Unit) {
+                 callback: (Boolean, String, String) -> Unit) {
         repo.register(email, password, callback)
     }
 
-    // real-time database
+    // Store additional user information in Realtime Database
     fun addUser(id: String, model: UserModel,
-                    callback: (Boolean, String) -> Unit) {
+                callback: (Boolean, String) -> Unit) {
         repo.addUser(id, model, callback)
     }
 
     fun editProfile(id: String, model: UserModel,
-                        callback: (Boolean, String) -> Unit) {
+                    callback: (Boolean, String) -> Unit) {
         repo.editProfile(id, model, callback)
     }
 
     fun deleteUser(id: String,
-                          callback: (Boolean, String) -> Unit) {
+                   callback: (Boolean, String) -> Unit) {
         repo.deleteUser(id, callback)
     }
 }

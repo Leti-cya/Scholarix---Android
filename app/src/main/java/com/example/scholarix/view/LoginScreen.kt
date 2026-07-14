@@ -1,13 +1,13 @@
 package com.example.scholarix.view
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +33,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,25 +48,37 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.example.scholarix.R
-import com.example.scholarix.ui.theme.Background
-import com.example.scholarix.ui.theme.PrimaryBlue
+import com.example.scholarix.repo.UserRepoImpl
+import com.example.scholarix.theme.Background
+import com.example.scholarix.theme.PrimaryBlue
+import com.example.scholarix.viewmodel.UserViewModel
 
 class LoginActivity : ComponentActivity() {
+    private val userViewModel: UserViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return UserViewModel(UserRepoImpl()) as T
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LoginScreen()
+            LoginScreen(userViewModel)
         }
     }
 }
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(userViewModel: UserViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -164,40 +178,98 @@ fun LoginScreen() {
             horizontalArrangement = Arrangement.End
         ) {
             Text("Forgot Password?",
-                style = TextStyle(color = PrimaryBlue)
+                style = TextStyle(color = PrimaryBlue),
+                modifier = Modifier.clickable {
+                    val intent = Intent(context, ForgotPasswordActivity::class.java)
+                    context.startActivity(intent)
+                }
             )
         }
+
+        var isLoading by remember { mutableStateOf(false) }
+        var navigated by remember { mutableStateOf(false) }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            Button(onClick = {
-                val sharedPreferences = context.getSharedPreferences("User", Context.MODE_PRIVATE)
-                val editor = sharedPreferences.edit()
+            Button(
+                onClick = {
+                    if (email.isBlank() || password.isBlank()) {
+                        Toast.makeText(context, "Please enter email and password", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
+                        Toast.makeText(context, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
 
-                val emailStorage : String? = sharedPreferences.getString("email", "")
-                val passwordStorage : String? = sharedPreferences.getString("password", "")
-
-                if (email == emailStorage && password == passwordStorage) {
-                    Toast.makeText(context, "Login success", Toast.LENGTH_SHORT).show()
-
-                    editor.putBoolean("isLoggedIn", true)
-
-                    val intent = Intent(context, DashboardActivity::class.java)
-                    context.startActivity(intent)
-                    activity?.finish()
-                } else {
-                    Toast.makeText(context, "Login failed", Toast.LENGTH_SHORT).show()
-                }
-            },
-                Modifier.fillMaxWidth(),
+                    isLoading = true
+                    userViewModel.login(email.trim(), password) { success, message ->
+                        if (success) {
+                            val uid = FirebaseAuth.getInstance().currentUser?.uid
+                            if (uid != null) {
+                                userViewModel.repo.getUserById(uid) { fetchSuccess, _, userModel ->
+                                    if (!navigated) {
+                                        navigated = true
+                                        isLoading = false
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                        if (fetchSuccess && userModel != null) {
+                                            if (userModel.profileCompleted) {
+                                                if (userModel.role == "student") {
+                                                    context.startActivity(
+                                                        Intent(
+                                                            context,
+                                                            StudentDashboardActivity::class.java
+                                                        )
+                                                    )
+                                                } else {
+                                                    context.startActivity(
+                                                        Intent(
+                                                            context,
+                                                            ProviderDashboardActivity::class.java
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                            else {
+                                                context.startActivity(
+                                                    Intent(
+                                                        context,
+                                                        CompleteProfileActivity::class.java
+                                                    )
+                                                )
+                                            }
+                                        } else {
+                                            // Handle missing profile
+                                            context.startActivity(Intent(context, CompleteProfileActivity::class.java))
+                                        }
+                                        activity?.finish()
+                                    }
+                                }
+                            } else {
+                                isLoading = false
+                                Toast.makeText(context, "User session not found", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            isLoading = false
+                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                },
+                enabled = !isLoading,
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PrimaryBlue,
                     contentColor = Color.White
-                )) {
-                Text(text = "Log In")
+                )
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text(text = "Log In")
+                }
             }
         }
 
@@ -239,10 +311,8 @@ fun LoginScreen() {
         ) {
             Text("Don't have account? ")
             Text("Sign up.",
-                modifier = Modifier.clickable{
-                    val intent = Intent(context,
-                        RegisterActivity::class.java)
-
+                modifier = Modifier.clickable {
+                    val intent = Intent(context, ChooseAccountActivity::class.java)
                     context.startActivity(intent)
                 },
                 style = TextStyle(color = PrimaryBlue)
@@ -277,10 +347,4 @@ fun LoginCard(
             Text(label)
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginPreview() {
-    LoginScreen()
 }

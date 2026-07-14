@@ -19,12 +19,12 @@ class UserRepoImpl : UserRepo {
     ) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener {
-            if (it.isSuccessful) {
-                callback(true, "Login success")
-            } else {
-                callback(false, "${it.exception?.message}")
+                if (it.isSuccessful) {
+                    callback(true, "Login success")
+                } else {
+                    callback(false, "${it.exception?.message}")
+                }
             }
-        }
     }
 
     override fun forgetPassword(
@@ -33,40 +33,45 @@ class UserRepoImpl : UserRepo {
     ) {
         auth.sendPasswordResetEmail(email)
             .addOnCompleteListener {
-            if (it.isSuccessful) {
-                callback(true, "Reset link sent to $email")
-            } else {
-                callback(false, "${it.exception?.message}")
+                if (it.isSuccessful) {
+                    callback(true, "Reset link sent to $email")
+                } else {
+                    callback(false, "${it.exception?.message}")
+                }
             }
-        }
     }
 
     override fun getUserById(
         id: String,
         callback: (Boolean, String, UserModel?) -> Unit
     ) {
-        ref.child(id).addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if(snapshot.exists()){
-                    val user = snapshot.getValue(UserModel::class.java)
+        ref.child(id).get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                val user =
+                    snapshot.getValue(UserModel::class.java)
 
-//                   if(user != null){
-//                       callback(true,"user fetched",user)
-//                   }
-
-                    user.let {
-                        callback(true,"user fetched",it)
-                    }
-                }
+                callback(
+                    true,
+                    "User fetched",
+                    user
+                )
+            } else {
+                callback(
+                    false,
+                    "User not found",
+                    null
+                )
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                callback(false, error.message,null)
-            }
-        })
+        }.addOnFailureListener {
+            callback(
+                false,
+                it.message ?: "Unknown error",
+                null
+            )
+        }
     }
 
-    override fun getAllUser(callback: (Boolean, String, List<UserModel?>) -> Unit) {
+    override fun getAllUsers(callback: (Boolean, String, List<UserModel?>) -> Unit) {
         ref.addValueEventListener(object  : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
                 if(snapshot.exists()){
@@ -81,6 +86,8 @@ class UserRepoImpl : UserRepo {
                     }
 
                     callback(true,"fetched",allUsers)
+                } else {
+                    callback(false, "No users found", emptyList())
                 }
             }
 
@@ -108,14 +115,13 @@ class UserRepoImpl : UserRepo {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener {
                 if (it.isSuccessful) {
-                    callback(true, "Login success", "${auth.currentUser?.uid}")
+                    callback(true, "Registration successful", "${auth.currentUser?.uid}")
                 } else {
                     callback(false, "${it.exception?.message}", "")
                 }
             }
     }
 
-    //CRUD
     override fun addUser(
         id: String,
         model: UserModel,

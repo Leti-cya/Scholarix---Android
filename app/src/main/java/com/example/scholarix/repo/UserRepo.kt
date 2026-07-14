@@ -3,14 +3,15 @@ package com.example.scholarix.repo
 import com.example.scholarix.model.UserModel
 
 interface UserRepo {
-//    {
-//    "success": true
-//     "message": "OTP link has been sent to your email"
-//    }
     fun login(
         email: String, password: String,
         callback: (Boolean, String) -> Unit
     )
+
+//    {
+//    "success": true
+//     "message": "OTP link has been sent to your email"
+//    }
 
     fun forgetPassword(
         email: String,
@@ -26,7 +27,7 @@ interface UserRepo {
         callback: (Boolean, String, UserModel?) -> Unit
     )
 
-    fun getAllUser(
+    fun getAllUsers(
         callback: (Boolean, String, List<UserModel?>) -> Unit
     )
 
@@ -36,10 +37,10 @@ interface UserRepo {
 
 //    {
 //    "success": true
-//     "message": "registered",
+//    "message": "registered",
 //    "userId": "fsdgdfhrtserawedsfdg"
 //    }
-    //authentication
+    // Firebase Authentication
     fun register(
         email: String, password: String,
         callback: (Boolean, String, String) -> Unit

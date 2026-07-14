@@ -1,11 +1,13 @@
 package com.example.scholarix.view
 
 import android.app.Activity
-import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,9 +18,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,25 +44,49 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.example.scholarix.R
-import com.example.scholarix.ui.theme.Background
-import com.example.scholarix.ui.theme.PrimaryBlue
+import com.example.scholarix.model.UserModel
+import com.example.scholarix.repo.UserRepoImpl
+import com.example.scholarix.theme.Background
+import com.example.scholarix.theme.PrimaryBlue
+import com.example.scholarix.view.LoginScreen
+import com.example.scholarix.viewmodel.UserViewModel
 
 class RegisterActivity : ComponentActivity() {
+    private lateinit var role: String
+
+    private val userViewModel: UserViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return UserViewModel(UserRepoImpl()) as T
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        role = intent.getStringExtra("ROLE") ?: "student"
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            RegisterScreen()
+            RegisterScreen(
+                userViewModel = userViewModel,
+                role = role
+            )
         }
     }
 }
 
 @Composable
-fun RegisterScreen() {
+fun RegisterScreen(
+    userViewModel: UserViewModel,
+    role: String
+) {
     var name by remember { mutableStateOf("") }
     var mobile by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -78,11 +106,15 @@ fun RegisterScreen() {
             modifier = Modifier.height(100.dp)
         )
 
-        Text("Create account", style = TextStyle(
-            color = PrimaryBlue,
-            fontSize = 30.sp,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center),
+        Text(text = if (role == "student")
+                "Create your Student Account"
+            else
+                "Register as a Scholarship Provider",
+            style = TextStyle(
+                color = PrimaryBlue,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center),
             modifier = Modifier.fillMaxWidth())
 
         Text("to join our family :3",
@@ -187,29 +219,77 @@ fun RegisterScreen() {
 
         Spacer(modifier = Modifier.height(15.dp))
 
+        var isLoading by remember { mutableStateOf(false) }
+        var navigated by remember { mutableStateOf(false) }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            Button(onClick = {
-                val sharedPreferences = context.getSharedPreferences("User", Context.MODE_PRIVATE)
+            Button(
+                onClick = {
+                    if (name.isBlank() || mobile.isBlank() || email.isBlank() || password.isBlank()) {
+                        Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
+                        Toast.makeText(context, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (password.length < 6) {
+                        Toast.makeText(context, "Password must be at least 6 characters long", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (mobile.trim().length < 7) {
+                        Toast.makeText(context, "Please enter a valid contact number", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
 
-                val editor = sharedPreferences.edit()
-
-                editor.putString("name", name)
-                editor.putString("mobile", mobile)
-                editor.putString("email", email)
-                editor.putString("password", password)
-
-                editor.apply()
-            },
-                Modifier.fillMaxWidth(),
+                    isLoading = true
+                    userViewModel.register(email.trim(), password) { success, message, userId ->
+                        if (success) {
+                            val userModel = UserModel(
+                                id = userId,
+                                fullName = name.trim(),
+                                email = email.trim(),
+                                contact = mobile.trim(),
+                                role = role,
+                                profileCompleted = false,
+                                isVerified = true
+                            )
+                            userViewModel.addUser(userId, userModel) { dbSuccess, dbMsg ->
+                                Toast.makeText(context, dbMsg, Toast.LENGTH_SHORT).show()
+                                if (dbSuccess) {
+                                    if (!navigated) {
+                                        navigated = true
+                                        isLoading = false
+                                        val intent = Intent(context, CompleteProfileActivity::class.java)
+                                        context.startActivity(intent)
+                                        activity?.finish()
+                                    }
+                                } else {
+                                    isLoading = false
+                                }
+                            }
+                        } else {
+                            isLoading = false
+                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                },
+                enabled = !isLoading,
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PrimaryBlue,
                     contentColor = Color.White
-                )) {
-                Text(text = "Sign Up")
+                )
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text(text = "Sign Up")
+                }
             }
         }
 
@@ -223,7 +303,7 @@ fun RegisterScreen() {
                 thickness = 2.dp,
                 color = Color.Gray.copy(alpha = 0.3f)
             )
-            Text("Oe Register With", modifier = Modifier.padding(horizontal = 5.dp))
+            Text("Or Register With", modifier = Modifier.padding(horizontal = 5.dp))
             HorizontalDivider(
                 modifier = Modifier.weight(1f),
                 thickness = 2.dp,
@@ -252,14 +332,12 @@ fun RegisterScreen() {
         ) {
             Text("Already have an account? ")
             Text("Sign in.",
-                modifier = Modifier.clickable{},
+                modifier = Modifier.clickable {
+                    val intent = Intent(context, LoginActivity::class.java)
+                    context.startActivity(intent)
+                    activity?.finish()
+                },
                 style = TextStyle(color = PrimaryBlue))
         }
     }
-}
-
-@Preview
-@Composable
-fun RegisterPreview() {
-    RegisterScreen()
 }

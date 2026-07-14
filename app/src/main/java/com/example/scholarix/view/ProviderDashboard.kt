@@ -11,33 +11,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.scholarix.ui.theme.Background
+import com.example.scholarix.theme.Background
 
-class DashboardActivity : ComponentActivity() {
+class ProviderDashboardActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            DashboardScreen()
+            ProviderDashboardScreen()
         }
     }
 }
 
 @Composable
-fun DashboardScreen() {
+fun ProviderDashboardScreen() {
     Column(
-        modifier = Modifier.fillMaxSize()
-            .background(color = Background)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Background)
             .padding(20.dp)
     ) {
-        Text("Welcome to my dashboard")
+        Text("Welcome to Provider Dashboard")
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DashboardPreview() {
-    DashboardScreen()
 }
