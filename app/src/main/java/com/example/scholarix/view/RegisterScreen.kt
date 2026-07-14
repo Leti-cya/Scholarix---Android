@@ -128,10 +128,24 @@ fun RegisterScreen(
                 name = it
             },
             shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(vertical = 15.dp),
             placeholder = {
-                Text("Enter your full name")
+                Text(
+                    if (role == "student")
+                        "Enter your full name"
+                    else
+                        "Enter organization name"
+                )
+            },
+            label = {
+                Text(
+                    if (role == "student")
+                        "Full Name"
+                    else
+                        "Organization Name"
+                )
             },
             colors = TextFieldDefaults.colors(
                 unfocusedIndicatorColor = Color.Transparent,
