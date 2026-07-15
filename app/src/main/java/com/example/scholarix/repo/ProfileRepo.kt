@@ -22,4 +22,8 @@ interface ProfileRepo {
         id: String,
         callback: (Boolean, String) -> Unit
     )
+
+    fun getAllProfiles(
+        callback: (Boolean, String, List<ProfileModel>) -> Unit
+    )
 }

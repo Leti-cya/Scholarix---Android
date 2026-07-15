@@ -63,4 +63,23 @@ class ProfileRepoImpl : ProfileRepo {
             }
         }
     }
+
+    override fun getAllProfiles(
+        callback: (Boolean, String, List<ProfileModel>) -> Unit
+    ) {
+        ref.get().addOnSuccessListener { snapshot ->
+            val list = mutableListOf<ProfileModel>()
+            if (snapshot.exists()) {
+                for (child in snapshot.children) {
+                    val data = child.getValue(ProfileModel::class.java)
+                    if (data != null) {
+                        list.add(data)
+                    }
+                }
+            }
+            callback(true, "Profiles fetched successfully", list)
+        }.addOnFailureListener {
+            callback(false, it.message ?: "Unknown error occurred", emptyList())
+        }
+    }
 }

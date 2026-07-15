@@ -12,6 +12,9 @@ class ProfileViewModel(val repo: ProfileRepo) : ViewModel() {
     private val _profile = MutableLiveData<ProfileModel?>()
     val profile: MutableLiveData<ProfileModel?> get() = _profile
 
+    private val _allProfiles = MutableLiveData<List<ProfileModel>>()
+    val allProfiles: MutableLiveData<List<ProfileModel>> get() = _allProfiles
+
     fun addProfile(
         id: String, model: ProfileModel,
         callback: (Boolean, String) -> Unit
@@ -31,6 +34,19 @@ class ProfileViewModel(val repo: ProfileRepo) : ViewModel() {
                 _loading.value = false
             } else {
                 _profile.value = null
+                _loading.value = false
+            }
+        }
+    }
+
+    fun getAllProfiles() {
+        _loading.value = true
+        repo.getAllProfiles { success, message, data ->
+            if (success) {
+                _allProfiles.value = data
+                _loading.value = false
+            } else {
+                _allProfiles.value = emptyList()
                 _loading.value = false
             }
         }

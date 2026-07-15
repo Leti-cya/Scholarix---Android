@@ -21,6 +21,7 @@
         <activity android:name=".view.AddEditScholarshipActivity" />
         <activity android:name=".view.ScholarshipDetailsActivity" />
         <activity android:name=".view.ProviderListActivity" />
+        <activity android:name=".view.ProviderDetailsActivity" />
         <activity android:name=".view.StudentProfileActivity" />
         <activity android:name=".view.ProviderProfileActivity" />
         <activity
