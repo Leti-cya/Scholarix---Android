@@ -6,7 +6,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -120,8 +119,8 @@ fun ProviderBottomNavigation(selected: BottomNavItem) {
                     activity?.overridePendingTransition(0, 0)
                 }
             },
-            icon = { Icon(imageVector = Icons.Default.Star, contentDescription = "Dashboard") },
-            label = { Text("My Scholarships") },
+            icon = { Icon(imageVector = Icons.Default.Home, contentDescription = "Dashboard") },
+            label = { Text("Dashboard") },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.White,
                 selectedTextColor = PrimaryBlue,

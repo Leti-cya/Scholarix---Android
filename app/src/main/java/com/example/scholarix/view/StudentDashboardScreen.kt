@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -63,8 +64,8 @@ fun StudentDashboardScreen(viewModel: ScholarshipViewModel) {
     val context = LocalContext.current
     val activity = context as? Activity
 
-    val scholarshipList by viewModel.scholarshipList.observeAsState<List<ScholarshipModel>>(initial = emptyList())
-    val isLoading by viewModel.loading.observeAsState<Boolean>(initial = false)
+    val scholarshipList by viewModel.scholarshipList.observeAsState(initial = emptyList())
+    val isLoading by viewModel.loading.observeAsState(initial = false)
 
     Scaffold(
         bottomBar = {

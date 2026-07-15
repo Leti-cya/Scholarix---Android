@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -80,10 +81,10 @@ fun ScholarshipDetailsScreen(
     val context = LocalContext.current
     val activity = context as? Activity
 
-    val scholarship by scholarshipViewModel.scholarship.observeAsState<ScholarshipModel?>(initial = null)
-    val isScholarshipLoading by scholarshipViewModel.loading.observeAsState<Boolean>(initial = false)
-    val providerUser by userViewModel.users.observeAsState<UserModel?>(initial = null)
-    val isUserLoading by userViewModel.loading.observeAsState<Boolean>(initial = false)
+    val scholarship by scholarshipViewModel.scholarship.observeAsState(initial = null)
+    val isScholarshipLoading by scholarshipViewModel.loading.observeAsState(initial = false)
+    val providerUser by userViewModel.users.observeAsState(initial = null)
+    val isUserLoading by userViewModel.loading.observeAsState(initial = false)
 
     var showContactDialog by remember { mutableStateOf(false) }
 

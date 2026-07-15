@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -69,8 +70,8 @@ fun AddEditScholarshipScreen(
     val activity = context as? Activity
 
     val isEditMode = !scholarshipId.isNullOrEmpty()
-    val fetchedScholarship by viewModel.scholarship.observeAsState<ScholarshipModel?>(initial = null)
-    val isLoading by viewModel.loading.observeAsState<Boolean>(initial = false)
+    val fetchedScholarship by viewModel.scholarship.observeAsState(initial = null)
+    val isLoading by viewModel.loading.observeAsState(initial = false)
 
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -69,8 +70,8 @@ fun ProviderDashboardScreen(viewModel: ScholarshipViewModel) {
     val activity = context as? Activity
 
     val uid = FirebaseAuth.getInstance().currentUser?.uid
-    val scholarshipList by viewModel.scholarshipList.observeAsState<List<ScholarshipModel>>(initial = emptyList())
-    val isLoading by viewModel.loading.observeAsState<Boolean>(initial = false)
+    val scholarshipList by viewModel.scholarshipList.observeAsState(initial = emptyList())
+    val isLoading by viewModel.loading.observeAsState(initial = false)
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var scholarshipToDelete by remember { mutableStateOf<ScholarshipModel?>(null) }

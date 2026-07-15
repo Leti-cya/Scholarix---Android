@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,8 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.scholarix.model.ProfileModel
@@ -71,39 +70,31 @@ class CompleteProfileActivity : ComponentActivity() {
             finish()
         }
 
+        val isEditMode = intent.getBooleanExtra("edit_mode", false)
+        if (uid != null) {
+            profileViewModel.getProfile(uid)
+        }
+
         setContent {
             ScholarixTheme {
-                CompleteProfileScreen(userViewModel, profileViewModel, uid ?: "")
+                CompleteProfileScreen(userViewModel, profileViewModel, uid ?: "", isEditMode)
             }
         }
     }
 }
 
 @Composable
-fun <T>LiveData<T>.observeAsState(initial: T): State<T> {
-    val state = remember { mutableStateOf(initial) }
-    DisposableEffect(this) {
-        val observer = Observer<T> { value ->
-            state.value = value
-        }
-        observeForever(observer)
-        onDispose {
-            removeObserver(observer)
-        }
-    }
-    return state
-}
-
-@Composable
 fun CompleteProfileScreen(
     userViewModel: UserViewModel,
     profileViewModel: ProfileViewModel,
-    uid: String
+    uid: String,
+    isEditMode: Boolean = false
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
 
     val userModel by userViewModel.users.observeAsState(initial = null)
+
     val isUserLoading by userViewModel.loading.observeAsState(initial = false)
     val isProfileSaving by profileViewModel.loading.observeAsState(initial = false)
 
@@ -130,6 +121,21 @@ fun CompleteProfileScreen(
         }
     }
 
+    val profileModel by profileViewModel.profile.observeAsState(initial = null)
+
+    // Prefill other profile fields when profileModel changes
+    LaunchedEffect(profileModel) {
+        profileModel?.let {
+            if (address.isEmpty()) address = it.address
+            if (description.isEmpty()) description = it.description
+            if (college.isEmpty()) college = it.college
+            if (course.isEmpty()) course = it.course
+            if (cgpa.isEmpty()) cgpa = it.cgpa
+            if (organizationType.isEmpty()) organizationType = it.organizationType
+            if (website.isEmpty()) website = it.website
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -153,7 +159,7 @@ fun CompleteProfileScreen(
                 Spacer(modifier = Modifier.height(40.dp))
 
                 Text(
-                    text = "Complete Profile",
+                    text = if (isEditMode) "Edit Profile" else "Complete Profile",
                     style = TextStyle(
                         color = PrimaryBlue,
                         fontSize = 30.sp,
@@ -164,7 +170,7 @@ fun CompleteProfileScreen(
                 )
 
                 Text(
-                    text = "Please fill out the details below to complete your profile.",
+                    text = if (isEditMode) "Update your profile details below." else "Please fill out the details below to complete your profile.",
                     style = TextStyle(
                         color = SecondaryText,
                         fontSize = 16.sp,
@@ -329,17 +335,22 @@ fun CompleteProfileScreen(
                                     )
                                     userViewModel.editProfile(uid, updatedUser) { userSuccess, userMsg ->
                                         if (userSuccess) {
-                                            Toast.makeText(context, "Profile completed successfully!", Toast.LENGTH_SHORT).show()
-                                            if (role == "student") {
-                                                context.startActivity(
-                                                    Intent(context, StudentDashboardActivity::class.java)
-                                                )
+                                            if (isEditMode) {
+                                                Toast.makeText(context, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
+                                                activity?.finish()
                                             } else {
-                                                context.startActivity(
-                                                    Intent(context, ProviderDashboardActivity::class.java)
-                                                )
+                                                Toast.makeText(context, "Profile completed successfully!", Toast.LENGTH_SHORT).show()
+                                                if (role == "student") {
+                                                    context.startActivity(
+                                                        Intent(context, StudentDashboardActivity::class.java)
+                                                    )
+                                                } else {
+                                                    context.startActivity(
+                                                        Intent(context, ProviderDashboardActivity::class.java)
+                                                    )
+                                                }
+                                                activity?.finish()
                                             }
-                                            activity?.finish()
                                         } else {
                                             Toast.makeText(
                                                 context,
@@ -375,7 +386,7 @@ fun CompleteProfileScreen(
                         )
                     } else {
                         Text(
-                            text = "Save",
+                            text = if (isEditMode) "Save Changes" else "Complete Profile",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
