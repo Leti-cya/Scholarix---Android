@@ -20,6 +20,9 @@
         <activity android:name=".view.ProviderDashboardActivity" />
         <activity android:name=".view.AddEditScholarshipActivity" />
         <activity android:name=".view.ScholarshipDetailsActivity" />
+        <activity android:name=".view.ProviderListActivity" />
+        <activity android:name=".view.StudentProfileActivity" />
+        <activity android:name=".view.ProviderProfileActivity" />
         <activity
             android:name=".view.SplashActivity"
             android:exported="true">

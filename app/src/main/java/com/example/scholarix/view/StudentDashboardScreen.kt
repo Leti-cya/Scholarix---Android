@@ -66,92 +66,97 @@ fun StudentDashboardScreen(viewModel: ScholarshipViewModel) {
     val scholarshipList by viewModel.scholarshipList.observeAsState<List<ScholarshipModel>>(initial = emptyList())
     val isLoading by viewModel.loading.observeAsState<Boolean>(initial = false)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Background)
-            .statusBarsPadding()
-            .navigationBarsPadding()
-    ) {
-        Column(
+    Scaffold(
+        bottomBar = {
+            StudentBottomNavigation(selected = BottomNavItem.Home)
+        }
+    ) { paddingValues ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 10.dp)
+                .background(color = Background)
+                .padding(paddingValues)
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Dashboard Header
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
             ) {
-                Column {
-                    Text(
-                        text = "Browse Scholarships",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryBlue
-                    )
-                    Text(
-                        text = "Find the best opportunities for you",
-                        fontSize = 14.sp,
-                        color = SecondaryText
-                    )
-                }
+                Spacer(modifier = Modifier.height(10.dp))
 
-                // Logout button
-                TextButton(
-                    onClick = {
-                        FirebaseAuth.getInstance().signOut()
-                        context.startActivity(Intent(context, LoginActivity::class.java))
-                        activity?.finish()
-                    }
-                ) {
-                    Text("Logout", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            if (isLoading && scholarshipList.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = PrimaryBlue)
-                }
-            } else if (scholarshipList.isEmpty()) {
-                Box(
+                // Dashboard Header
+                Row(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "No scholarships available.",
-                        color = SecondaryText,
-                        fontSize = 16.sp
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f)
-                ) {
-                    items(scholarshipList) { scholarship ->
-                        StudentScholarshipItem(
-                            scholarship = scholarship,
-                            onViewDetailsClick = {
-                                val intent = Intent(context, ScholarshipDetailsActivity::class.java).apply {
-                                    putExtra("SCHOLARSHIP_ID", scholarship.id)
-                                }
-                                context.startActivity(intent)
-                            }
+                    Column {
+                        Text(
+                            text = "Browse Scholarships",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryBlue
                         )
+                        Text(
+                            text = "Find the best opportunities for you",
+                            fontSize = 14.sp,
+                            color = SecondaryText
+                        )
+                    }
+
+                    // Logout button
+                    TextButton(
+                        onClick = {
+                            FirebaseAuth.getInstance().signOut()
+                            context.startActivity(Intent(context, LoginActivity::class.java))
+                            activity?.finish()
+                        }
+                    ) {
+                        Text("Logout", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                if (isLoading && scholarshipList.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = PrimaryBlue)
+                    }
+                } else if (scholarshipList.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No scholarships available.",
+                            color = SecondaryText,
+                            fontSize = 16.sp
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                    ) {
+                        items(scholarshipList) { scholarship ->
+                            StudentScholarshipItem(
+                                scholarship = scholarship,
+                                onViewDetailsClick = {
+                                    val intent = Intent(context, ScholarshipDetailsActivity::class.java).apply {
+                                        putExtra("SCHOLARSHIP_ID", scholarship.id)
+                                    }
+                                    context.startActivity(intent)
+                                }
+                            )
+                        }
                     }
                 }
             }

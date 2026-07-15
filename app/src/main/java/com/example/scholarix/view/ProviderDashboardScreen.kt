@@ -117,126 +117,131 @@ fun ProviderDashboardScreen(viewModel: ScholarshipViewModel) {
         )
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Background)
-            .statusBarsPadding()
-            .navigationBarsPadding()
-    ) {
-        Column(
+    Scaffold(
+        bottomBar = {
+            ProviderBottomNavigation(selected = BottomNavItem.Dashboard)
+        }
+    ) { paddingValues ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 10.dp)
+                .background(color = Background)
+                .padding(paddingValues)
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Dashboard Header
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
             ) {
-                Column {
-                    Text(
-                        text = "Welcome Provider",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryBlue
-                    )
-                    Text(
-                        text = "Manage your posted scholarships",
-                        fontSize = 14.sp,
-                        color = SecondaryText
-                    )
-                }
+                Spacer(modifier = Modifier.height(10.dp))
 
-                // Simple logout text button
-                TextButton(
-                    onClick = {
-                        FirebaseAuth.getInstance().signOut()
-                        context.startActivity(Intent(context, LoginActivity::class.java))
-                        activity?.finish()
-                    }
-                ) {
-                    Text("Logout", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Add Scholarship Button
-            Button(
-                onClick = {
-                    val intent = Intent(context, AddEditScholarshipActivity::class.java)
-                    context.startActivity(intent)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryBlue,
-                    contentColor = Color.White
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Icon",
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Add Scholarship",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            if (isLoading && scholarshipList.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = PrimaryBlue)
-                }
-            } else if (scholarshipList.isEmpty()) {
-                Box(
+                // Dashboard Header
+                Row(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "No scholarships added yet.",
-                        color = SecondaryText,
-                        fontSize = 16.sp
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f)
-                ) {
-                    items(scholarshipList) { scholarship ->
-                        ScholarshipItem(
-                            scholarship = scholarship,
-                            onEditClick = {
-                                val intent = Intent(context, AddEditScholarshipActivity::class.java).apply {
-                                    putExtra("SCHOLARSHIP_ID", scholarship.id)
-                                }
-                                context.startActivity(intent)
-                            },
-                            onDeleteClick = {
-                                scholarshipToDelete = scholarship
-                                showDeleteDialog = true
-                            }
+                    Column {
+                        Text(
+                            text = "Welcome Provider",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryBlue
                         )
+                        Text(
+                            text = "Manage your posted scholarships",
+                            fontSize = 14.sp,
+                            color = SecondaryText
+                        )
+                    }
+
+                    // Simple logout text button
+                    TextButton(
+                        onClick = {
+                            FirebaseAuth.getInstance().signOut()
+                            context.startActivity(Intent(context, LoginActivity::class.java))
+                            activity?.finish()
+                        }
+                    ) {
+                        Text("Logout", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Add Scholarship Button
+                Button(
+                    onClick = {
+                        val intent = Intent(context, AddEditScholarshipActivity::class.java)
+                        context.startActivity(intent)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryBlue,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Icon",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Add Scholarship",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                if (isLoading && scholarshipList.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = PrimaryBlue)
+                    }
+                } else if (scholarshipList.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No scholarships added yet.",
+                            color = SecondaryText,
+                            fontSize = 16.sp
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                    ) {
+                        items(scholarshipList) { scholarship ->
+                            ScholarshipItem(
+                                scholarship = scholarship,
+                                onEditClick = {
+                                    val intent = Intent(context, AddEditScholarshipActivity::class.java).apply {
+                                        putExtra("SCHOLARSHIP_ID", scholarship.id)
+                                    }
+                                    context.startActivity(intent)
+                                },
+                                onDeleteClick = {
+                                    scholarshipToDelete = scholarship
+                                    showDeleteDialog = true
+                                }
+                            )
+                        }
                     }
                 }
             }
