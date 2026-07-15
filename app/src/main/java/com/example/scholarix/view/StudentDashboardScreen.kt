@@ -28,11 +28,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.scholarix.model.ScholarshipModel
 import com.example.scholarix.repo.ScholarshipRepoImpl
+import com.example.scholarix.repo.UserRepoImpl
 import com.example.scholarix.theme.Background
+import com.example.scholarix.theme.DarkText
 import com.example.scholarix.theme.PrimaryBlue
 import com.example.scholarix.theme.ScholarixTheme
 import com.example.scholarix.theme.SecondaryText
 import com.example.scholarix.viewmodel.ScholarshipViewModel
+import com.example.scholarix.viewmodel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 class StudentDashboardActivity : ComponentActivity() {
@@ -45,27 +48,54 @@ class StudentDashboardActivity : ComponentActivity() {
         }
     }
 
+    private val userViewModel: UserViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return UserViewModel(UserRepoImpl()) as T
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         scholarshipViewModel.getAllScholarships()
 
+        FirebaseAuth.getInstance().currentUser?.uid?.let {
+            userViewModel.getUserById(it)
+        }
+
         setContent {
             ScholarixTheme {
-                StudentDashboardScreen(scholarshipViewModel)
+                StudentDashboardScreen(
+                    scholarshipViewModel,
+                    userViewModel
+                )
             }
         }
     }
 }
 
 @Composable
-fun StudentDashboardScreen(viewModel: ScholarshipViewModel) {
+fun StudentDashboardScreen(
+    scholarshipViewModel: ScholarshipViewModel,
+    userViewModel: UserViewModel
+) {
     val context = LocalContext.current
     val activity = context as? Activity
 
-    val scholarshipList by viewModel.scholarshipList.observeAsState(initial = emptyList())
-    val isLoading by viewModel.loading.observeAsState(initial = false)
+    val scholarshipList by scholarshipViewModel.scholarshipList.observeAsState(initial = emptyList())
+    val isLoading by scholarshipViewModel.loading.observeAsState(initial = false)
+
+    val userModel by userViewModel.users.observeAsState(initial = null)
+    val firstName =
+        userModel?.fullName
+            ?.trim()
+            ?.split(" ")
+            ?.firstOrNull()
+            ?: ""
 
     Scaffold(
         bottomBar = {
@@ -86,37 +116,38 @@ fun StudentDashboardScreen(viewModel: ScholarshipViewModel) {
                 Spacer(modifier = Modifier.height(10.dp))
 
                 // Dashboard Header
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(vertical = 10.dp)
                 ) {
-                    Column {
-                        Text(
-                            text = "Browse Scholarships",
-                            fontSize = 26.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PrimaryBlue
-                        )
-                        Text(
-                            text = "Find the best opportunities for you",
-                            fontSize = 14.sp,
-                            color = SecondaryText
-                        )
-                    }
 
-                    // Logout button
-                    TextButton(
-                        onClick = {
-                            FirebaseAuth.getInstance().signOut()
-                            context.startActivity(Intent(context, LoginActivity::class.java))
-                            activity?.finish()
-                        }
-                    ) {
-                        Text("Logout", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
-                    }
+                    Text(
+                        text = if (firstName.isNotBlank())
+                            "Hello, $firstName!"
+                        else
+                            "Hello!",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryBlue
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = "Browse Scholarships",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryBlue
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Find opportunities that match you.",
+                        fontSize = 14.sp,
+                        color = SecondaryText
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -174,42 +205,50 @@ fun StudentScholarshipItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
+            defaultElevation = 3.dp
         )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(18.dp)
         ) {
+
+            // Scholarship Title
             Text(
                 text = scholarship.title,
-                fontSize = 18.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = PrimaryBlue
             )
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Amount: ${scholarship.amount}",
-                    fontSize = 14.sp,
-                    color = SecondaryText
-                )
-                Text(
-                    text = "Deadline: ${scholarship.deadline}",
-                    fontSize = 14.sp,
-                    color = SecondaryText
-                )
-            }
-            Spacer(modifier = Modifier.height(10.dp))
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Amount (make it stand out)
+            Text(
+                text = "Amount: ${scholarship.amount}",
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                color = DarkText
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Deadline
+            Text(
+                text = "Deadline: ${scholarship.deadline}",
+                fontSize = 14.sp,
+                color = SecondaryText
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Description
             Text(
                 text = scholarship.description,
                 fontSize = 14.sp,
@@ -217,14 +256,16 @@ fun StudentScholarshipItem(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(12.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
                 Button(
                     onClick = onViewDetailsClick,
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = PrimaryBlue,
                         contentColor = Color.White
