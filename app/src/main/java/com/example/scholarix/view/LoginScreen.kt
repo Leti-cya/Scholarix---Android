@@ -210,11 +210,11 @@ fun LoginScreen(userViewModel: UserViewModel) {
                             val uid = FirebaseAuth.getInstance().currentUser?.uid
                             if (uid != null) {
                                 userViewModel.repo.getUserById(uid) { fetchSuccess, _, userModel ->
-                                    if (!navigated) {
-                                        navigated = true
-                                        isLoading = false
-                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                        if (fetchSuccess && userModel != null) {
+                                    if (fetchSuccess && userModel != null) {
+                                        if (!navigated) {
+                                            navigated = true
+                                            isLoading = false
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                             if (userModel.profileCompleted) {
                                                 if (userModel.role == "student") {
                                                     context.startActivity(
@@ -240,11 +240,12 @@ fun LoginScreen(userViewModel: UserViewModel) {
                                                     )
                                                 )
                                             }
-                                        } else {
-                                            // Handle missing profile
-                                            context.startActivity(Intent(context, CompleteProfileActivity::class.java))
+                                            activity?.finish()
                                         }
-                                        activity?.finish()
+                                    } else {
+                                        isLoading = false
+                                        FirebaseAuth.getInstance().signOut()
+                                        Toast.makeText(context, "Your account data could not be found. Please register again or contact support.", Toast.LENGTH_LONG).show()
                                     }
                                 }
                             } else {

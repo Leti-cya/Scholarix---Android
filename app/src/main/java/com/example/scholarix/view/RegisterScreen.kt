@@ -55,6 +55,7 @@ import com.example.scholarix.theme.Background
 import com.example.scholarix.theme.PrimaryBlue
 import com.example.scholarix.view.LoginScreen
 import com.example.scholarix.viewmodel.UserViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 class RegisterActivity : ComponentActivity() {
     private lateinit var role: String
@@ -272,8 +273,8 @@ fun RegisterScreen(
                                 isVerified = true
                             )
                             userViewModel.addUser(userId, userModel) { dbSuccess, dbMsg ->
-                                Toast.makeText(context, dbMsg, Toast.LENGTH_SHORT).show()
                                 if (dbSuccess) {
+                                    Toast.makeText(context, dbMsg, Toast.LENGTH_SHORT).show()
                                     if (!navigated) {
                                         navigated = true
                                         isLoading = false
@@ -283,6 +284,29 @@ fun RegisterScreen(
                                     }
                                 } else {
                                     isLoading = false
+                                    val currentUser = FirebaseAuth.getInstance().currentUser
+                                    if (currentUser != null) {
+                                        currentUser.delete().addOnCompleteListener { task ->
+                                            FirebaseAuth.getInstance().signOut()
+
+                                            if (task.isSuccessful) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Registration failed. Your account has been rolled back.",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Registration failed. Please contact support.",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            }
+                                        }
+                                    } else {
+                                        FirebaseAuth.getInstance().signOut()
+                                        Toast.makeText(context, "Registration failed: database error.", Toast.LENGTH_LONG).show()
+                                    }
                                 }
                             }
                         } else {
