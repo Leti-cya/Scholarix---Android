@@ -105,6 +105,7 @@ fun StudentProfileScreen(
     val profileModel by profileViewModel.profile.observeAsState(initial = null)
     val isUserLoading by userViewModel.loading.observeAsState(initial = false)
     val isProfileLoading by profileViewModel.loading.observeAsState(initial = false)
+    val isDeleting by userViewModel.deleteLoading.observeAsState(initial = false)
 
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -151,7 +152,21 @@ fun StudentProfileScreen(
                 TextButton(
                     onClick = {
                         showDeleteDialog = false
-                        Toast.makeText(context, "Delete account coming soon", Toast.LENGTH_SHORT).show()
+                        val uid = FirebaseAuth.getInstance().currentUser?.uid
+                        if (uid != null) {
+                            userViewModel.deleteUser(uid) { success, message ->
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                if (success) {
+                                    val intent = Intent(context, LoginActivity::class.java).apply {
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    }
+                                    context.startActivity(intent)
+                                    activity?.finish()
+                                }
+                            }
+                        } else {
+                            Toast.makeText(context, "User session not found.", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 ) {
                     Text("Delete", color = MaterialTheme.colorScheme.error)
@@ -162,6 +177,24 @@ fun StudentProfileScreen(
                     Text("Cancel")
                 }
             }
+        )
+    }
+
+    if (isDeleting) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("Deleting Account") },
+            text = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    CircularProgressIndicator(color = PrimaryBlue)
+                    Text("Please wait...")
+                }
+            },
+            confirmButton = {}
         )
     }
 

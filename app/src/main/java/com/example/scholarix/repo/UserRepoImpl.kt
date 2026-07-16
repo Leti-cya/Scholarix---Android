@@ -159,12 +159,111 @@ class UserRepoImpl : UserRepo {
         id: String,
         callback: (Boolean, String) -> Unit
     ) {
-        ref.child(id).removeValue().addOnCompleteListener {
-            if(it.isSuccessful){
-                callback(true,"Account deleted successfully")
-            } else{
-                callback(false,"${it.exception?.message}")
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            callback(false, "User session not found. Please log in again.")
+            return
+        }
+
+        // 1. Fetch user role and associated scholarships first without making any modifications
+        fetchUserRoleAndScholarships(id,
+            onComplete = { role, scholarshipKeys ->
+                // 2. Attempt authentication deletion first
+                currentUser.delete().addOnCompleteListener { authTask ->
+                    if (authTask.isSuccessful) {
+                        // 3. If auth deletion succeeds, delete database records
+                        deleteDatabaseRecords(id, role, scholarshipKeys) { dbSuccess, dbMessage ->
+                            if (dbSuccess) {
+                                callback(true, "Account deleted successfully")
+                            } else {
+                                callback(false, dbMessage)
+                            }
+                        }
+                    } else {
+                        // 4. If auth deletion fails, do not delete any database records
+                        val exception = authTask.exception
+                        if (exception is com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException) {
+                            callback(false, "Re-authentication required. Please log in again to delete your account.")
+                        } else {
+                            callback(false, exception?.message ?: "Failed to delete authentication account")
+                        }
+                    }
+                }
+            },
+            onFailure = { errorMsg ->
+                callback(false, errorMsg)
+            }
+        )
+    }
+
+    private fun fetchUserRoleAndScholarships(
+        id: String,
+        onComplete: (role: String, scholarshipKeys: List<String>) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        ref.child(id).get().addOnSuccessListener { snapshot ->
+            if (!snapshot.exists()) {
+                onComplete("", emptyList())
+                return@addOnSuccessListener
+            }
+            val user = snapshot.getValue(UserModel::class.java)
+            val role = user?.role ?: ""
+
+            if (role == "provider") {
+                val scholarshipsRef = database.getReference("scholarships")
+                scholarshipsRef.orderByChild("providerId").equalTo(id).get()
+                    .addOnSuccessListener { scholarshipsSnapshot ->
+                        val keys = mutableListOf<String>()
+                        if (scholarshipsSnapshot.exists()) {
+                            for (child in scholarshipsSnapshot.children) {
+                                val key = child.key
+                                if (key != null) {
+                                    keys.add(key)
+                                }
+                            }
+                        }
+                        onComplete(role, keys)
+                    }
+                    .addOnFailureListener {
+                        onFailure(it.message ?: "Failed to fetch scholarships")
+                    }
+            } else {
+                onComplete(role, emptyList())
+            }
+        }.addOnFailureListener {
+            onFailure(it.message ?: "Failed to fetch user information")
+        }
+    }
+
+    private fun deleteDatabaseRecords(
+        id: String,
+        role: String,
+        scholarshipKeys: List<String>,
+        onComplete: (Boolean, String) -> Unit
+    ) {
+        val deleteTasks = mutableListOf<com.google.android.gms.tasks.Task<Void>>()
+
+        // Delete user record from users/{uid}
+        deleteTasks.add(ref.child(id).removeValue())
+
+        // Delete profile from profiles/{uid}
+        deleteTasks.add(database.getReference("profiles").child(id).removeValue())
+
+        // Delete scholarships if user is a provider
+        if (role == "provider") {
+            val scholarshipsRef = database.getReference("scholarships")
+            for (key in scholarshipKeys) {
+                deleteTasks.add(scholarshipsRef.child(key).removeValue())
             }
         }
+
+        com.google.android.gms.tasks.Tasks.whenAllComplete(deleteTasks)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onComplete(true, "All database records deleted successfully")
+                } else {
+                    onComplete(false, task.exception?.message ?: "Failed to delete some database records")
+                }
+            }
     }
 }

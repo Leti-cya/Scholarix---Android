@@ -72,8 +72,15 @@ class UserViewModel(val repo : UserRepo) : ViewModel() {
         repo.editProfile(id, model, callback)
     }
 
+    private val _deleteLoading = MutableLiveData<Boolean>()
+    val deleteLoading: MutableLiveData<Boolean> get() = _deleteLoading
+
     fun deleteUser(id: String,
                    callback: (Boolean, String) -> Unit) {
-        repo.deleteUser(id, callback)
+        _deleteLoading.value = true
+        repo.deleteUser(id) { success, message ->
+            _deleteLoading.value = false
+            callback(success, message)
+        }
     }
 }
