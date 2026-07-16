@@ -11,22 +11,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Scholarix">
-        <activity android:name=".view.ChooseAccountActivity" />
-        <activity android:name=".view.LoginActivity" />
-        <activity android:name=".view.RegisterActivity" />
-        <activity android:name=".view.ForgotPasswordActivity" />
-        <activity android:name=".view.CompleteProfileActivity" />
-        <activity android:name=".view.StudentDashboardActivity" />
-        <activity android:name=".view.ProviderDashboardActivity" />
-        <activity android:name=".view.AddEditScholarshipActivity" />
-        <activity android:name=".view.ScholarshipDetailsActivity" />
-        <activity android:name=".view.ProviderListActivity" />
-        <activity android:name=".view.ProviderDetailsActivity" />
-        <activity android:name=".view.StudentProfileActivity" />
-        <activity android:name=".view.ProviderProfileActivity" />
-        <activity android:name=".view.ChangePasswordActivity" />
+        <activity android:name=".ui.screens.auth.ChooseAccountActivity" />
+        <activity android:name=".ui.screens.auth.LoginActivity" />
+        <activity android:name=".ui.screens.auth.RegisterActivity" />
+        <activity android:name=".ui.screens.auth.ForgotPasswordActivity" />
+        <activity android:name=".ui.screens.common.CompleteProfileActivity" />
+        <activity android:name=".ui.screens.student.StudentDashboardActivity" />
+        <activity android:name=".ui.screens.provider.ProviderDashboardActivity" />
+        <activity android:name=".ui.screens.provider.AddEditScholarshipActivity" />
+        <activity android:name=".ui.screens.student.ScholarshipDetailsActivity" />
+        <activity android:name=".ui.screens.student.ProviderListActivity" />
+        <activity android:name=".ui.screens.student.ProviderDetailsActivity" />
+        <activity android:name=".ui.screens.student.StudentProfileActivity" />
+        <activity android:name=".ui.screens.provider.ProviderProfileActivity" />
+        <activity android:name=".ui.screens.common.ChangePasswordActivity" />
         <activity
-            android:name=".view.SplashActivity"
+            android:name=".ui.screens.common.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

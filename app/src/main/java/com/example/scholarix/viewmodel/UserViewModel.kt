@@ -3,7 +3,7 @@ package com.example.scholarix.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.scholarix.model.UserModel
-import com.example.scholarix.repo.UserRepo
+import com.example.scholarix.repository.UserRepo
 
 class UserViewModel(val repo : UserRepo) : ViewModel() {
     fun login(email: String, password: String,

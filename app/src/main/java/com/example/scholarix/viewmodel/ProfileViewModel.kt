@@ -3,7 +3,7 @@ package com.example.scholarix.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.scholarix.model.ProfileModel
-import com.example.scholarix.repo.ProfileRepo
+import com.example.scholarix.repository.ProfileRepo
 
 class ProfileViewModel(val repo: ProfileRepo) : ViewModel() {
     private val _loading = MutableLiveData<Boolean>()
