@@ -24,6 +24,7 @@
         <activity android:name=".view.ProviderDetailsActivity" />
         <activity android:name=".view.StudentProfileActivity" />
         <activity android:name=".view.ProviderProfileActivity" />
+        <activity android:name=".view.ChangePasswordActivity" />
         <activity
             android:name=".view.SplashActivity"
             android:exported="true">

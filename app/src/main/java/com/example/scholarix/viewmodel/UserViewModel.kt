@@ -83,4 +83,9 @@ class UserViewModel(val repo : UserRepo) : ViewModel() {
             callback(success, message)
         }
     }
+
+    fun changePassword(currentPassword: String, newPassword: String,
+                       callback: (Boolean, String) -> Unit) {
+        repo.changePassword(currentPassword, newPassword, callback)
+    }
 }

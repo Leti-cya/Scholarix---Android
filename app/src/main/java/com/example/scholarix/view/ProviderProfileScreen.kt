@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
@@ -366,6 +367,15 @@ fun ProviderProfileScreen(
                             val intent = Intent(context, CompleteProfileActivity::class.java).apply {
                                 putExtra("edit_mode", true)
                             }
+                            context.startActivity(intent)
+                        }
+                    )
+
+                    AccountListItem(
+                        icon = Icons.Default.Lock,
+                        title = "Change Password",
+                        onClick = {
+                            val intent = Intent(context, ChangePasswordActivity::class.java)
                             context.startActivity(intent)
                         }
                     )

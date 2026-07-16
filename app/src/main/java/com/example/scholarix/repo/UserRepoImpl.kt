@@ -2,6 +2,7 @@ package com.example.scholarix.repo
 
 import com.example.scholarix.model.UserModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -263,6 +264,46 @@ class UserRepoImpl : UserRepo {
                     onComplete(true, "All database records deleted successfully")
                 } else {
                     onComplete(false, task.exception?.message ?: "Failed to delete some database records")
+                }
+            }
+    }
+
+    override fun changePassword(
+        currentPassword: String,
+        newPassword: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            callback(false, "User session not found. Please log in again.")
+            return
+        }
+
+        val email = currentUser.email
+        if (email.isNullOrEmpty()) {
+            callback(false, "User email not found.")
+            return
+        }
+
+        val credential = EmailAuthProvider.getCredential(email, currentPassword)
+        currentUser.reauthenticate(credential)
+            .addOnCompleteListener { reauthTask ->
+                if (reauthTask.isSuccessful) {
+                    currentUser.updatePassword(newPassword)
+                        .addOnCompleteListener { updateTask ->
+                            if (updateTask.isSuccessful) {
+                                callback(true, "Password updated successfully.")
+                            } else {
+                                callback(false, updateTask.exception?.message ?: "Failed to update password.")
+                            }
+                        }
+                } else {
+                    val exception = reauthTask.exception
+                    if (exception is com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) {
+                        callback(false, "Current password is incorrect.")
+                    } else {
+                        callback(false, exception?.message ?: "Current password is incorrect.")
+                    }
                 }
             }
     }

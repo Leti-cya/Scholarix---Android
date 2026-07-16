@@ -65,4 +65,10 @@ interface UserRepo {
         id: String,
         callback: (Boolean, String) -> Unit
     )
+
+    fun changePassword(
+        currentPassword: String,
+        newPassword: String,
+        callback: (Boolean, String) -> Unit
+    )
 }
